@@ -1,0 +1,3 @@
+insert into student(rut, name, last_name, birth_date, school_type, school_name, graduation_year) values ('23456789-0', 'Roberto', 'Lopez', '12-12-1990', 'Subvencionado', 'Licarayen', 2022);
+insert into student(rut, name, last_name, birth_date, school_type, school_name, graduation_year) values ('34567890-1', 'Pamela', 'Ruiz', '12-12-1990', 'Privado', 'Aguilas', 2021);
+insert into student(rut, name, last_name, birth_date, school_type, school_name, graduation_year) values ('45678901-2', 'Carolina', 'Mena', '12-12-1990', 'Municipal', 'Liceo A', 2020);
