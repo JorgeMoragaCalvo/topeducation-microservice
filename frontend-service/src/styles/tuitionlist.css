@@ -1,0 +1,12 @@
+/* Estilos en tu archivo CSS */
+.tuition {
+    max-width: 800px; /* Ajusta según tus necesidades */
+    margin: 0 auto; /* Centra el contenedor */
+  }
+  
+  /* También puedes aplicar estilos directamente a la tabla si lo prefieres
+  .table {
+    max-width: 100%;
+    width: 100%;
+  }*/
+  

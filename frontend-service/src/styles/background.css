@@ -1,0 +1,6 @@
+.background-image {
+    background-image: url('../images/background.jpg');
+    background-size: cover; /* Ajusta la imagen al tamaño del contenedor */
+    background-attachment: fixed; /* Fija la imagen de fondo para que no se desplace con el scroll */
+  }
+  
