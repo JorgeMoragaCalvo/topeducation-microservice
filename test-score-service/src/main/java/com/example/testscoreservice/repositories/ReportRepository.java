@@ -7,5 +7,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ReportRepository extends JpaRepository<ReportEntity, Long> {
 
+    /* Search By Rut */
     ReportEntity findByRut(String rut);
 }

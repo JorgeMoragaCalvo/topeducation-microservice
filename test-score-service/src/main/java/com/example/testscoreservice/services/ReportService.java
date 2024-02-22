@@ -37,8 +37,8 @@ public class ReportService {
         ReportEntity existingReport = reportRepository.findByRut(rut);
         if(existingReport != null) return existingReport;
 
-        Tuition tuition = restTemplate.getForObject("http://localhost:8080/tuition/by-rut/" + rut, Tuition.class);
-        Student student = restTemplate.getForObject("http://localhost:8080/student/by-rut/" + rut, Student.class);
+        Student student = restTemplate.getForObject("http://gateway-service:8080/student/by-rut/" + rut, Student.class);
+        Tuition tuition = restTemplate.getForObject("http://gateway-service:8080/tuition/by-rut/" + rut, Tuition.class);
         TestScoreEntity testScores = testScoreService.getTestScoreByRut(rut);
 
         double discount;
