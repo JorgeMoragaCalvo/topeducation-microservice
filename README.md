@@ -1,19 +1,209 @@
-# Educational Center Project  
-This project simulates an educational center for university preparation, managing enrollments, fees, and discounts based on specific criteria. The following functionalities have been implemented:
-* __Student Management__: Allows entering and listing student data.  
-* __Enrollment and Payments__: Ability to register students and specify payment types.  
-* __Notes Import__: Integration to import notes from an Excel file.  
-* __Report Generation__: A summary report is generated with relevant information for each student.
+# TopEducation — Microservices Platform
 
-Discounts are calculated based on the type of school, year of graduation, and average score. The project's architecture is based on microservices, using Spring Boot and PostgreSQL for the backend, and ReactJS for the frontend. Docker Hub is used for container storage, and Kubernetes for deployment in a local environment.
+> Microservices platform simulating a Chilean university-prep institute: enrollments, score ingestion from Excel, and tuition discount calculation driven by school type, graduation year, and exam average.
 
+![Java](https://img.shields.io/badge/Java-17-007396?logo=java&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-2.5.4-6DB33F?logo=springboot&logoColor=white)
+![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2020.0.3-6DB33F?logo=spring&logoColor=white)
+![React](https://img.shields.io/badge/React-18.2-61DAFB?logo=react&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-DB%20per%20service-4169E1?logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-containerized-2496ED?logo=docker&logoColor=white)
+![Maven](https://img.shields.io/badge/Build-Maven-C71A36?logo=apachemaven&logoColor=white)
 
-### Microservices  
-* __student-service__: Manages student data.  
-* __test-score-service__: Imports notes and calculates discounts.  
-* __tuition-service__: Handles enrollments and payments.  
+---
 
+## Overview
 
+TopEducation models the operations of a pre-university preparation institute: registering students, importing PAES-style exam scores from Excel sheets, recording tuition payments, and computing tuition discounts. The platform is decomposed into independently deployable Spring Boot services orchestrated through Spring Cloud (Eureka discovery, centralized config, API gateway), backed by a PostgreSQL-per-service data strategy and consumed by a React 18 single-page application.
 
-### Deployment
-Deployment is done on a Kubernetes cluster using containers stored in Docker Hub.
+The codebase is intentionally a portfolio piece: it demonstrates microservice decomposition, service discovery, centralized configuration, gateway routing, JPA persistence, file ingestion, inter-service orchestration, and full-stack integration in a single repository.
+
+---
+
+## Architecture
+
+```diagram
+                 ┌──────────────┐
+                 │   React 18   │  :3000
+                 │   Frontend   │
+                 └──────┬───────┘
+                        │ HTTP
+                 ┌──────▼───────┐
+                 │   Gateway    │  :8080  (Spring Cloud Gateway)
+                 └──┬────┬───┬──┘
+                    │    │   │      ┌──────────────┐
+                    │    │   │ ◄────┤   Eureka     │ :8761
+                    │    │   │      └──────────────┘
+                    │    │   │      ┌──────────────┐
+                    │    │   │ ◄────┤ Config Server│ :8081
+                    │    │   │      └──────────────┘
+           ┌────────▼─┐ ┌▼──────┐ ┌─▼──────────┐
+           │ student- │ │tuition│ │ test-score │
+           │ service  │ │service│ │  service   │
+           └────┬─────┘ └───┬───┘ └─────┬──────┘
+                │           │           │
+             ┌──▼──┐     ┌──▼──┐     ┌──▼──┐
+             │ PG  │     │ PG  │     │ PG  │
+             └─────┘     └─────┘     └─────┘
+```
+
+- **Service discovery** via Netflix Eureka — services register on startup and discover each other by name.
+- **Centralized configuration** via Spring Cloud Config Server, pulling from a dedicated GitHub repository.
+- **Single ingress** via Spring Cloud Gateway — the React app and inter-service calls go through one routable entry point.
+- **Database per service** — each domain service owns its PostgreSQL instance, enforcing bounded contexts.
+
+---
+
+## Microservices
+
+| Service              | Port | Responsibility                                        | Key endpoints                                                                                 |
+|----------------------|------|-------------------------------------------------------|-----------------------------------------------------------------------------------------------|
+| `config-service`     | 8081 | Centralized configuration server                      | —                                                                                             |
+| `eureka-service`     | 8761 | Service registry & discovery                          | —                                                                                             |
+| `gateway-service`    | 8080 | API gateway, single entry point                       | Routes `/student/**`, `/tuition/**`, `/score-report/**`                                       |
+| `student-service`    | —    | Manage student data (PK = Chilean RUT)                | `POST /student/create`, `GET /student/get-students`, `GET /student/by-rut/{rut}`              |
+| `tuition-service`    | —    | Register enrollments and payment type                 | `POST /tuition/create`, `GET /tuition/get`, `GET /tuition/by-rut/{rut}`                       |
+| `test-score-service` | —    | Excel ingestion, score storage, discount/report calc. | `POST /score-report/process-excel`, `GET /score-report/{rut}`, `GET /score-report/all-report` |
+| `frontend-service`   | 3000 | React 18 SPA consuming the gateway                    | —                                                                                             |
+
+---
+
+## Domain logic — discount calculation
+
+When a student requests a tuition report, `test-score-service` orchestrates a call to `student-service` and `tuition-service`, then applies the following business rules:
+
+- **Cash payment (`Contado`)** → flat **50%** discount, all other rules ignored.
+- **Installments (`Cuotas`)** → discounts are **additive** across three axes:
+
+  | School type        | Discount |
+  |--------------------|----------|
+  | Municipal          | 20%      |
+  | Subvencionado      | 10%      |
+  | Other / Privado    | 0%       |
+
+  | Years since graduation | Discount |
+  |------------------------|----------|
+  | 1 year                 | 15%      |
+  | ≤ 2 years              | 8%       |
+  | 3–4 years              | 4%       |
+  | > 4 years              | 0%       |
+
+  | Exam average (PAES, 0–1000) | Discount |
+  |-----------------------------|----------|
+  | 950 – 1000                  | 10%      |
+  | 900 – 949                   | 5%       |
+  | 850 – 899                   | 2%       |
+  | < 850                       | 0%       |
+
+- **School type** also drives installment count (Municipal: 10, Subvencionado: 7, Other: 4).
+- Final tuition = `(TARIFF + ENROLLMENT) × (1 − totalDiscount)`, with `TARIFF = 1,500,000 CLP` and `ENROLLMENT = 70,000 CLP`.
+
+Source: [`ReportService.java`](test-score-service/src/main/java/com/example/testscoreservice/services/ReportService.java).
+
+---
+
+## Tech stack
+
+**Backend** — Java 17 · Spring Boot 2.5.4 · Spring Cloud 2020.0.3 · Spring Data JPA / Hibernate · Lombok · Apache POI 4.1.2 (Excel) · Spring Cloud Gateway · Eureka · Config Server · Spring Boot Actuator + Micrometer Prometheus · RestTemplate · Maven.
+
+**Frontend** — React 18.2 · React Router 6 · axios · React-Bootstrap · styled-components · SweetAlert2.
+
+**Infra** — Docker (per-service `Dockerfile`) · PostgreSQL · GitHub-backed external config repo.
+
+---
+
+## Skills demonstrated
+
+- **Microservice decomposition** by bounded context (student / tuition / test-score).
+- **Service discovery** with Netflix Eureka.
+- **Centralized configuration** with Spring Cloud Config + Git backend.
+- **API Gateway pattern** with Spring Cloud Gateway for ingress routing.
+- **REST API design** with Spring MVC controllers and JPA repositories.
+- **Inter-service orchestration** via HTTP (RestTemplate through the gateway).
+- **File ingestion** of `.xlsx` exam sheets with Apache POI.
+- **Polyglot persistence layout** — separate PostgreSQL DB per service.
+- **Containerization** — production-shaped Dockerfiles per service.
+- **Full-stack delivery** — React 18 SPA wired to a Spring backend through the gateway.
+- **Metrics-ready** — Actuator + Micrometer Prometheus endpoints exposed on every service.
+
+---
+
+## Getting started
+
+### Prerequisites
+
+- Java 17, Maven 3.8+
+- Node.js 18+
+- Docker (optional, for containerized run)
+- A reachable PostgreSQL instance (one logical DB per service)
+
+### Required environment variables
+
+```
+POSTGRES_DB_HOST=<host>
+POSTGRES_DB_STUDENT=<student db name>
+POSTGRES_DB_TEST_SCORE=<test-score db name>
+POSTGRES_DB_TUITION=<tuition db name>
+POSTGRES_USER=<user>
+POSTGRES_PASSWORD=<password>
+```
+
+### Boot order
+
+1. `config-service` (so others can fetch their config)
+2. `eureka-service`
+3. `student-service`, `tuition-service`, `test-score-service` (in any order)
+4. `gateway-service`
+5. `frontend-service`
+
+Each Spring Boot service: `mvn spring-boot:run`. Frontend: `npm install && npm start`.
+
+---
+
+## Roadmap & proposed improvements
+
+The current codebase is a working portfolio prototype. The following improvements would harden it for production and are tracked here as honest gaps.
+
+### Quality & testing
+- Replace generated `*ApplicationTests` stubs with real **JUnit 5 + Mockito** unit tests on the service layer, `@DataJpaTest` for repositories, and **Testcontainers** for end-to-end PostgreSQL flows.
+- Wire **JaCoCo** into the Maven build with a ≥70% coverage gate on service classes.
+- **Consumer-driven contract tests** (Spring Cloud Contract or Pact) between `test-score-service` and its callees to prevent silent breakage of `/student/by-rut/{rut}` and `/tuition/by-rut/{rut}`.
+
+### DevOps & deployment
+- Add a root `docker-compose.yml` for one-command local boot of all 6 services + 3 PostgreSQL instances (Dockerfiles exist; orchestration does not).
+- Ship **Kubernetes manifests** (Deployments, Services, ConfigMaps, Secrets) and a **Helm chart**.
+- Convert single-stage Dockerfiles to **multi-stage builds** (`maven:3.9-eclipse-temurin-17` → `eclipse-temurin:17-jre-alpine`) to shrink image size.
+- **GitHub Actions CI**: build, test, and push images on every PR / merge to `main`.
+
+### Security
+- **JWT authentication** at the gateway (Spring Security + gateway filters); endpoints are open today.
+- **Secret management** — move DB credentials out of plain env vars into Vault or Kubernetes Secrets.
+- **CORS hardening** at the gateway, restricted to the React origin.
+- **Bean Validation** (`@Valid` + `@NotBlank`/`@Pattern`) on all request DTOs.
+
+### Resilience & observability
+- Replace `RestTemplate` with **OpenFeign** for declarative, testable HTTP clients.
+- Add **Resilience4j** (circuit breaker, retry, timeout) to inter-service calls so a downstream outage doesn't cascade.
+- **Distributed tracing** with Spring Cloud Sleuth + Zipkin/Tempo; correlation IDs across services.
+- **Prometheus + Grafana** stack on top of the existing Actuator metrics, with starter dashboards.
+- **Structured JSON logging** with correlation IDs.
+
+### API & documentation
+- Expose **OpenAPI / Swagger UI** per service via `springdoc-openapi`, aggregated at the gateway.
+- Commit a **Postman collection** under `docs/`.
+
+### Code quality
+- Introduce a **DTO layer** so JPA entities aren't exposed as API contracts.
+- **Global exception handler** (`@RestControllerAdvice`) returning a consistent error envelope.
+- **Pagination** on listing endpoints (`get-students`, `get`, `tests`).
+- **Database migrations** with Flyway or Liquibase, replacing Hibernate `ddl-auto`.
+
+---
+
+## Author
+
+**Jorge Moraga Calvo** — Computer Engineering, Universidad de Santiago de Chile (USACH)
+
+- Email: [jorge.moraga.c@usach.cl](mailto:jorge.moraga.c@usach.cl)
+- GitHub: [JorgeMoragaCalvo](https://github.com/JorgeMoragaCalvo)
+- LinkedIn: [Jorge](https://www.linkedin.com/in/jorge-moraga-calvo)
