@@ -160,46 +160,6 @@ Each Spring Boot service: `mvn spring-boot:run`. Frontend: `npm install && npm s
 
 ---
 
-## Roadmap & proposed improvements
-
-The current codebase is a working portfolio prototype. The following improvements would harden it for production and are tracked here as honest gaps.
-
-### Quality & testing
-- Replace generated `*ApplicationTests` stubs with real **JUnit 5 + Mockito** unit tests on the service layer, `@DataJpaTest` for repositories, and **Testcontainers** for end-to-end PostgreSQL flows.
-- Wire **JaCoCo** into the Maven build with a ≥70% coverage gate on service classes.
-- **Consumer-driven contract tests** (Spring Cloud Contract or Pact) between `test-score-service` and its callees to prevent silent breakage of `/student/by-rut/{rut}` and `/tuition/by-rut/{rut}`.
-
-### DevOps & deployment
-- Add a root `docker-compose.yml` for one-command local boot of all 6 services + 3 PostgreSQL instances (Dockerfiles exist; orchestration does not).
-- Ship **Kubernetes manifests** (Deployments, Services, ConfigMaps, Secrets) and a **Helm chart**.
-- Convert single-stage Dockerfiles to **multi-stage builds** (`maven:3.9-eclipse-temurin-17` → `eclipse-temurin:17-jre-alpine`) to shrink image size.
-- **GitHub Actions CI**: build, test, and push images on every PR / merge to `main`.
-
-### Security
-- **JWT authentication** at the gateway (Spring Security + gateway filters); endpoints are open today.
-- **Secret management** — move DB credentials out of plain env vars into Vault or Kubernetes Secrets.
-- **CORS hardening** at the gateway, restricted to the React origin.
-- **Bean Validation** (`@Valid` + `@NotBlank`/`@Pattern`) on all request DTOs.
-
-### Resilience & observability
-- Replace `RestTemplate` with **OpenFeign** for declarative, testable HTTP clients.
-- Add **Resilience4j** (circuit breaker, retry, timeout) to inter-service calls so a downstream outage doesn't cascade.
-- **Distributed tracing** with Spring Cloud Sleuth + Zipkin/Tempo; correlation IDs across services.
-- **Prometheus + Grafana** stack on top of the existing Actuator metrics, with starter dashboards.
-- **Structured JSON logging** with correlation IDs.
-
-### API & documentation
-- Expose **OpenAPI / Swagger UI** per service via `springdoc-openapi`, aggregated at the gateway.
-- Commit a **Postman collection** under `docs/`.
-
-### Code quality
-- Introduce a **DTO layer** so JPA entities aren't exposed as API contracts.
-- **Global exception handler** (`@RestControllerAdvice`) returning a consistent error envelope.
-- **Pagination** on listing endpoints (`get-students`, `get`, `tests`).
-- **Database migrations** with Flyway or Liquibase, replacing Hibernate `ddl-auto`.
-
----
-
 ## Author
 
 **Jorge Moraga Calvo** — Computer Engineering, Universidad de Santiago de Chile (USACH)
