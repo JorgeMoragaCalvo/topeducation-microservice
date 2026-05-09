@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: tuition-service
+  cloud:
+    config:
+      enabled: false
+      fail-fast: false
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
