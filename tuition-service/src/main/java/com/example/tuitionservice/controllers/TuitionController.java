@@ -5,7 +5,12 @@ import com.example.tuitionservice.services.TuitionService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/tuition")
@@ -32,7 +37,7 @@ public class TuitionController {
     @GetMapping("/by-rut/{rut}")
     public ResponseEntity<TuitionEntity> getRegistrationByRut(@PathVariable("rut") String rut) {
         TuitionEntity tuitionEntity = tuitionService.getRegistrationByRut(rut);
-        if (tuitionEntity == null) return ResponseEntity.notFound().build();
+        if (tuitionEntity == null) { return ResponseEntity.notFound().build(); }
         return ResponseEntity.ok(tuitionEntity);
     }
 }
