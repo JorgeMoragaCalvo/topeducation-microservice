@@ -39,7 +39,7 @@ public class TestScoreService {
 
     private void processingSheet(Sheet sheet) {
         Iterator<Row> rowIterator = sheet.iterator();
-        if (rowIterator.hasNext()) rowIterator.next();
+        if (rowIterator.hasNext()) { rowIterator.next(); }
 
         while (rowIterator.hasNext()) {
             Row row = rowIterator.next();
@@ -56,8 +56,8 @@ public class TestScoreService {
             int score = (int) scoreCell.getNumericCellValue();
 
             persistOnDataBase(rut, score);
-        } else
-            System.err.println("Al menos una de las celdas es nula en la fila " + row.getRowNum());
+        } else {
+            System.err.println("Al menos una de las celdas es nula en la fila " + row.getRowNum()); }
     }
 
     private void persistOnDataBase(String rut, int score) {
