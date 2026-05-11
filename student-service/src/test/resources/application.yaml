@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:14-alpine:///studenttest
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+    username: test
+    password: test
+  jpa:
+    database-platform: org.hibernate.dialect.PostgresPlusDialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
