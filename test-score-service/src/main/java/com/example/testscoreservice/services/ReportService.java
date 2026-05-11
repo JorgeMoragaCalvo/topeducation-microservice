@@ -29,7 +29,9 @@ public class ReportService {
     public ReportEntity getReport(String rut) {
 
         ReportEntity existingReport = reportRepository.findByRut(rut);
-        if (existingReport != null) { return existingReport; }
+        if (existingReport != null) {
+            return existingReport;
+        }
 
         Student student =
                 restTemplate.getForObject(
