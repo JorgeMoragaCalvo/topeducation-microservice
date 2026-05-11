@@ -11,5 +11,4 @@ public class TestScoreServiceApplication {
     public static void main(String[] args) {
         SpringApplication.run(TestScoreServiceApplication.class, args);
     }
-
 }

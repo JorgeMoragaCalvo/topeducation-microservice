@@ -1,10 +1,9 @@
 package com.example.testscoreservice.entities;
 
+import javax.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import javax.persistence.*;
 
 @Entity
 @Table(name = "report")
@@ -13,9 +12,7 @@ import javax.persistence.*;
 @Data
 public class ReportEntity {
     @Id
-    @GeneratedValue(
-            strategy = GenerationType.IDENTITY
-    )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String rut;

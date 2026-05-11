@@ -1,10 +1,9 @@
 package com.example.studentservice.entities;
 
+import javax.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import javax.persistence.*;
 
 @Entity
 @Table(name = "student")
@@ -13,8 +12,7 @@ import javax.persistence.*;
 @AllArgsConstructor
 public class StudentEntity {
 
-    @Id
-    private String rut;
+    @Id private String rut;
 
     private String name;
     private String lastName;

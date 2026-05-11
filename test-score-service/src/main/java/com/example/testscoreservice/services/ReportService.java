@@ -6,39 +6,37 @@ import com.example.testscoreservice.model.Student;
 import com.example.testscoreservice.model.Tuition;
 import com.example.testscoreservice.repositories.ReportRepository;
 import com.example.testscoreservice.repositories.TestScoreRepository;
+import java.time.LocalDate;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDate;
-import java.util.List;
-
-
 @Service
 public class ReportService {
 
-    @Autowired
-    ReportRepository reportRepository;
+    @Autowired ReportRepository reportRepository;
 
-    @Autowired
-    RestTemplate restTemplate;
+    @Autowired RestTemplate restTemplate;
 
-    @Autowired
-    TestScoreService testScoreService;
+    @Autowired TestScoreService testScoreService;
 
-    @Autowired
-    TestScoreRepository testScoreRepository;
+    @Autowired TestScoreRepository testScoreRepository;
 
     private static final int TARIFF_AMOUNT = 1500000;
     private static final int TUITION_AMOUNT = 70000;
 
-    public ReportEntity getReport(String rut){
+    public ReportEntity getReport(String rut) {
 
         ReportEntity existingReport = reportRepository.findByRut(rut);
-        if(existingReport != null) return existingReport;
+        if (existingReport != null) return existingReport;
 
-        Student student = restTemplate.getForObject("http://gateway-service:8080/student/by-rut/" + rut, Student.class);
-        Tuition tuition = restTemplate.getForObject("http://gateway-service:8080/tuition/by-rut/" + rut, Tuition.class);
+        Student student =
+                restTemplate.getForObject(
+                        "http://gateway-service:8080/student/by-rut/" + rut, Student.class);
+        Tuition tuition =
+                restTemplate.getForObject(
+                        "http://gateway-service:8080/tuition/by-rut/" + rut, Tuition.class);
         TestScoreEntity testScores = testScoreService.getTestScoreByRut(rut);
 
         double discount;
@@ -50,11 +48,12 @@ public class ReportService {
         ReportEntity reportEntity = new ReportEntity();
         assert tuition != null;
 
-        if(tuition.getPaymentType().equals("Contado")) discount = 0.5;
+        if (tuition.getPaymentType().equals("Contado")) discount = 0.5;
         else {
-            discount = calculateDiscountBySchoolType(student) +
-                    calculateDiscountByGraduationYear(student) +
-                    calculateDiscountByAverageScore(testScores);
+            discount =
+                    calculateDiscountBySchoolType(student)
+                            + calculateDiscountByGraduationYear(student)
+                            + calculateDiscountByAverageScore(testScores);
         }
 
         dto = (int) (discount * 100);
@@ -73,24 +72,24 @@ public class ReportService {
         return reportRepository.save(reportEntity);
     }
 
-    public Double calculateDiscountBySchoolType(Student student){
+    public Double calculateDiscountBySchoolType(Student student) {
         String schoolType = student.getSchoolType();
 
-        return switch (schoolType){
+        return switch (schoolType) {
             case "Municipal" -> 0.2;
             case "Subvencionado" -> 0.1;
             default -> 0.0;
         };
     }
 
-    public Double calculateDiscountByGraduationYear(Student student){
+    public Double calculateDiscountByGraduationYear(Student student) {
         int year = student.getGraduationYear();
         double discount;
         LocalDate currenDate = LocalDate.now();
         int currentYear = currenDate.getYear();
         int yearDifference = currentYear - year;
 
-        if(yearDifference == 1) discount = 0.15;
+        if (yearDifference == 1) discount = 0.15;
         else if (yearDifference <= 2) discount = 0.08;
         else if (yearDifference >= 3 && yearDifference <= 4) discount = 0.04;
         else discount = 0.0;
@@ -98,20 +97,20 @@ public class ReportService {
         return discount;
     }
 
-    public Integer calculateDues(Student student){
+    public Integer calculateDues(Student student) {
         String dues = student.getSchoolType();
 
-        return switch (dues){
+        return switch (dues) {
             case "Municipal" -> 10;
             case "Subvencionado" -> 7;
             default -> 4;
         };
     }
 
-    public Double calculateDiscountByAverageScore(TestScoreEntity testScoreEntity){
+    public Double calculateDiscountByAverageScore(TestScoreEntity testScoreEntity) {
         double averageScore = testScoreEntity.getTestAverage();
         double discount = 0.0;
-        if(averageScore >= 950 && averageScore <=1000) discount = 0.1;
+        if (averageScore >= 950 && averageScore <= 1000) discount = 0.1;
         else if (averageScore >= 900 && averageScore < 950) discount = 0.05;
         else if (averageScore >= 850 && averageScore < 900) discount = 0.02;
         else if (averageScore < 850) discount = 0.0;
@@ -119,7 +118,7 @@ public class ReportService {
         return discount;
     }
 
-    public List<ReportEntity> getAllReport(){
+    public List<ReportEntity> getAllReport() {
         return reportRepository.findAll();
     }
 }

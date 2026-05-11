@@ -2,10 +2,9 @@ package com.example.tuitionservice.services;
 
 import com.example.tuitionservice.entities.TuitionEntity;
 import com.example.tuitionservice.repositories.TuitionRepository;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class TuitionService {
@@ -17,15 +16,15 @@ public class TuitionService {
         this.tuitionRepository = tuitionRepository;
     }
 
-    public TuitionEntity createRegistration(TuitionEntity tuitionEntity){
+    public TuitionEntity createRegistration(TuitionEntity tuitionEntity) {
         return tuitionRepository.save(tuitionEntity);
     }
 
-    public List<TuitionEntity> getRegistrations(){
+    public List<TuitionEntity> getRegistrations() {
         return tuitionRepository.findAll();
     }
 
-    public TuitionEntity getRegistrationByRut(String rut){
+    public TuitionEntity getRegistrationByRut(String rut) {
         return tuitionRepository.findByRut(rut);
     }
 }
