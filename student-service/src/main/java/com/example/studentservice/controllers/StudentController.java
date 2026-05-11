@@ -32,14 +32,18 @@ public class StudentController {
     @GetMapping("/get-students")
     public ResponseEntity<List<StudentEntity>> getAll() {
         List<StudentEntity> studentEntities = studentService.getAllStudents();
-        if (studentEntities.isEmpty()) { return ResponseEntity.noContent().build(); }
+        if (studentEntities.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
         return ResponseEntity.ok(studentEntities);
     }
 
     @GetMapping("/by-rut/{rut}")
     public ResponseEntity<StudentEntity> getStudentByRut(@PathVariable("rut") String rut) {
         StudentEntity studentEntity = studentService.getStudentByRut(rut);
-        if (studentEntity == null) { return ResponseEntity.notFound().build(); }
+        if (studentEntity == null) {
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.ok(studentEntity);
     }
 

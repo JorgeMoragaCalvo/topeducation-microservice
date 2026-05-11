@@ -37,7 +37,9 @@ public class TuitionController {
     @GetMapping("/by-rut/{rut}")
     public ResponseEntity<TuitionEntity> getRegistrationByRut(@PathVariable("rut") String rut) {
         TuitionEntity tuitionEntity = tuitionService.getRegistrationByRut(rut);
-        if (tuitionEntity == null) { return ResponseEntity.notFound().build(); }
+        if (tuitionEntity == null) {
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.ok(tuitionEntity);
     }
 }

@@ -50,8 +50,7 @@ public class ReportService {
 
         if (tuition.getPaymentType().equals("Contado")) {
             discount = 0.5;
-        }
-        else {
+        } else {
             discount =
                     calculateDiscountBySchoolType(student)
                             + calculateDiscountByGraduationYear(student)
@@ -91,10 +90,15 @@ public class ReportService {
         int currentYear = currenDate.getYear();
         int yearDifference = currentYear - year;
 
-        if (yearDifference == 1) { discount = 0.15; }
-        else if (yearDifference <= 2) { discount = 0.08; }
-        else if (yearDifference >= 3 && yearDifference <= 4) { discount = 0.04; }
-        else { discount = 0.0; }
+        if (yearDifference == 1) {
+            discount = 0.15;
+        } else if (yearDifference <= 2) {
+            discount = 0.08;
+        } else if (yearDifference >= 3 && yearDifference <= 4) {
+            discount = 0.04;
+        } else {
+            discount = 0.0;
+        }
 
         return discount;
     }
@@ -112,10 +116,15 @@ public class ReportService {
     public Double calculateDiscountByAverageScore(TestScoreEntity testScoreEntity) {
         double averageScore = testScoreEntity.getTestAverage();
         double discount = 0.0;
-        if (averageScore >= 950 && averageScore <= 1000) { discount = 0.1; }
-        else if (averageScore >= 900 && averageScore < 950) { discount = 0.05; }
-        else if (averageScore >= 850 && averageScore < 900) { discount = 0.02; }
-        else if (averageScore < 850) { discount = 0.0; }
+        if (averageScore >= 950 && averageScore <= 1000) {
+            discount = 0.1;
+        } else if (averageScore >= 900 && averageScore < 950) {
+            discount = 0.05;
+        } else if (averageScore >= 850 && averageScore < 900) {
+            discount = 0.02;
+        } else if (averageScore < 850) {
+            discount = 0.0;
+        }
 
         return discount;
     }
