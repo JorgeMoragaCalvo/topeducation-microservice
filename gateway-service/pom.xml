@@ -109,6 +109,7 @@
 				</dependencies>
 				<configuration>
 					<configLocation>../config/checkstyle/checkstyle.xml</configLocation>
+					<propertyExpansion>config_loc=${project.basedir}/../config/checkstyle</propertyExpansion>
 					<consoleOutput>true</consoleOutput>
 					<failsOnError>true</failsOnError>
 					<violationSeverity>error</violationSeverity>
