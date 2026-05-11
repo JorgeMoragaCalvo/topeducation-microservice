@@ -29,7 +29,7 @@ public class ReportService {
     public ReportEntity getReport(String rut) {
 
         ReportEntity existingReport = reportRepository.findByRut(rut);
-        if (existingReport != null) return existingReport;
+        if (existingReport != null) { return existingReport; }
 
         Student student =
                 restTemplate.getForObject(
@@ -43,7 +43,8 @@ public class ReportService {
         int dues;
         assert student != null;
         dues = calculateDues(student);
-        int total, dto;
+        int total;
+        int dto;
 
         ReportEntity reportEntity = new ReportEntity();
         assert tuition != null;
